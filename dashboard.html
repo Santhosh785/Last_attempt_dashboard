@@ -294,6 +294,7 @@
     <div class="header-row">
       <h2>Student Events</h2>
       <button class="btn-primary" onclick="fetchEvents()">Refresh</button>
+      <button class="btn-delete" style="padding:0.5rem 1.25rem;font-size:0.875rem;" onclick="deleteAll()">Delete All</button>
     </div>
 
     <div class="filters-row">
@@ -390,8 +391,9 @@
       const filterEvt = document.getElementById('filter-event').value;
 
       const filtered = allEvents.filter(e => {
-        const matchSearch = (e.name && e.name.toLowerCase().includes(searchQ)) || 
-                            (e.phone && e.phone.toLowerCase().includes(searchQ));
+        const matchSearch = !searchQ ||
+          (e.name && e.name.toLowerCase().includes(searchQ)) ||
+          (e.phone && e.phone.toLowerCase().includes(searchQ));
         const matchEvt = filterEvt ? e.event_type === filterEvt : true;
         return matchSearch && matchEvt;
       });
@@ -448,6 +450,20 @@
       const totalTime = allEvents.reduce((acc, curr) => acc + (curr.time_spent_seconds || 0), 0);
       const avgTime = Math.round(totalTime / allEvents.length);
       document.getElementById('stat-avg-time').innerText = formatTime(avgTime);
+    }
+
+    async function deleteAll() {
+      if (!confirm('Delete ALL records? This cannot be undone.')) return;
+      try {
+        const res = await fetch('/api/events', { method: 'DELETE' });
+        if (res.ok) {
+          fetchEvents();
+        } else {
+          alert('Failed to delete all records');
+        }
+      } catch (err) {
+        console.error('Error deleting all:', err);
+      }
     }
 
     async function deleteEvent(id) {

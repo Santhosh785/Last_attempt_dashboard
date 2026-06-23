@@ -259,6 +259,14 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
+// DELETE /api/events — delete all events
+app.delete('/api/events', async (_req, res) => {
+  if (!supabase) return res.status(400).json({ error: 'Supabase not configured' });
+  const { error } = await supabase.from('tracking_events').delete().neq('id', 0);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
 // DELETE /api/events/:id — delete a specific event
 app.delete('/api/events/:id', async (req, res) => {
   if (!supabase) return res.status(400).json({ error: 'Supabase not configured' });
