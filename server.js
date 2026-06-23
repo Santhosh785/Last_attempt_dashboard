@@ -265,8 +265,14 @@ app.delete('/api/events/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => {
-  console.log(`Tracking server running on port ${PORT}`);
-  if (!supabase) console.log('WARNING: Supabase is NOT configured. Set SUPABASE_URL and SUPABASE_KEY env vars.');
-  else console.log('Supabase client initialized.');
-});
+// For local dev
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Tracking server running on port ${PORT}`);
+    if (!supabase) console.log('WARNING: Supabase is NOT configured. Set SUPABASE_URL and SUPABASE_KEY env vars.');
+    else console.log('Supabase client initialized.');
+  });
+}
+
+// For Vercel serverless
+module.exports = app;
