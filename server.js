@@ -178,6 +178,11 @@ app.post('/api/test', async (req, res) => {
     updateBiginPotential(formattedPhone, event.timestamp).catch(() => {});
   }
 
+  // Skip saving if no phone number
+  if (!formattedPhone) {
+    return res.status(200).json({ ok: true });
+  }
+
   // Save to Supabase if configured
   if (supabase) {
     if (formattedPhone) {
