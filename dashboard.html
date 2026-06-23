@@ -424,8 +424,14 @@
     }
 
     function updateStats() {
-      if (!allEvents.length) return;
-      
+      if (!allEvents.length) {
+        document.getElementById('stat-students').innerText = '0';
+        document.getElementById('stat-shares').innerText = '0';
+        document.getElementById('stat-avg-scroll').innerText = '0%';
+        document.getElementById('stat-avg-time').innerText = '0m 0s';
+        return;
+      }
+
       const uniquePhones = new Set(allEvents.filter(e => e.phone).map(e => e.phone));
       document.getElementById('stat-students').innerText = uniquePhones.size;
 
