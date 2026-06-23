@@ -372,13 +372,16 @@
     async function fetchEvents() {
       try {
         const res = await fetch('/api/events?limit=1000');
+        if (!res.ok) throw new Error('Server error: ' + res.status);
         const data = await res.json();
         allEvents = data.events || [];
         updateStats();
         renderTable();
-        refreshCounter = 30; // reset timer
+        refreshCounter = 30;
       } catch (err) {
         console.error("Error fetching events:", err);
+        document.getElementById('table-body').innerHTML =
+          '<tr><td colspan="11" style="text-align:center;color:#ef4444;padding:2rem;">Failed to load data. Retrying...</td></tr>';
       }
     }
 
@@ -464,10 +467,9 @@
     // Timer logic
     setInterval(() => {
       refreshCounter--;
+      document.getElementById('refresh-timer').innerText = Math.max(refreshCounter, 0);
       if (refreshCounter <= 0) {
         fetchEvents();
-      } else {
-        document.getElementById('refresh-timer').innerText = refreshCounter;
       }
     }, 1000);
 

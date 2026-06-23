@@ -102,7 +102,7 @@ app.use(express.json());
 // CORS
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
@@ -147,7 +147,9 @@ app.post('/api/test', async (req, res) => {
   if (formattedPhone) {
     // Keep only digits and '+'
     formattedPhone = formattedPhone.replace(/[^\d+]/g, '');
-    if (formattedPhone.length === 10 && !formattedPhone.startsWith('+')) {
+    // Strip leading zeros before formatting
+    formattedPhone = formattedPhone.replace(/^\+?0+/, '');
+    if (formattedPhone.length === 10) {
       formattedPhone = '+91' + formattedPhone;
     } else if (formattedPhone.startsWith('91') && formattedPhone.length === 12) {
       formattedPhone = '+' + formattedPhone;
