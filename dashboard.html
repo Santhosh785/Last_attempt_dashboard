@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FOCAS Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #111424;
+      --sidebar-bg: #15192b;
+      --card-bg: #1a1e36;
+      --border: #2a2f4c;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --accent: #5c67f2;
+      --accent-hover: #4f58d3;
+      --danger: #ef4444;
+      --danger-border: #7f1d1d;
+      --tag-scroll-bg: rgba(99, 102, 241, 0.15);
+      --tag-scroll-color: #818cf8;
+      --tag-open-bg: rgba(59, 130, 246, 0.15);
+      --tag-open-color: #60a5fa;
+      --tag-rti-bg: rgba(234, 179, 8, 0.15);
+      --tag-rti-color: #facc15;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 0;
+    }
+    .logo {
+      padding: 0 1.5rem 2rem;
+    }
+    .logo-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .logo-subtitle {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+    .sidebar nav {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0 1rem;
+    }
+    .sidebar nav a {
+      text-decoration: none;
+      color: var(--text-muted);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .sidebar nav a.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .sidebar nav a:hover:not(.active) {
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+    }
+    .auto-refresh {
+      padding: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+    .stat-val {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Controls */
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .header-row h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .filters-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .filters-row input, .filters-row select {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.875rem;
+      outline: none;
+    }
+    .filters-row input {
+      flex: 1;
+      max-width: 400px;
+    }
+    .filters-row select {
+      min-width: 150px;
+    }
+
+    /* Table */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    th, td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+    th {
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .tag.scrolling { 
+      background: var(--tag-scroll-bg); 
+      color: var(--tag-scroll-color); 
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+    .tag.page_open { 
+      background: var(--tag-open-bg); 
+      color: var(--tag-open-color); 
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    .tag.rti_click {
+      background: var(--tag-rti-bg);
+      color: var(--tag-rti-color);
+      border-color: rgba(234, 179, 8, 0.3);
+    }
+    .tag.shared-no {
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+    }
+    .tag.shared-yes {
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-delete:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-title">FOCAS</div>
+      <div class="logo-subtitle">ANALYTICS</div>
+    </div>
+    <nav>
+      <a href="#" class="active">Students</a>
+    </nav>
+    <div class="auto-refresh">Auto refresh: <span id="refresh-timer">30</span>s</div>
+  </div>
+
+  <div class="main-content">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">TOTAL STUDENTS</div>
+        <div class="stat-val" id="stat-students">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">SHARED</div>
+        <div class="stat-val" id="stat-shares">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">AVG SCROLL DEPTH</div>
+        <div class="stat-val" id="stat-avg-scroll">0%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">AVG TIME SPENT</div>
+        <div class="stat-val" id="stat-avg-time">0m 0s</div>
+      </div>
+    </div>
+
+    <div class="header-row">
+      <h2>Student Events</h2>
+      <button class="btn-primary" onclick="fetchEvents()">Refresh</button>
+    </div>
+
+    <div class="filters-row">
+      <input type="text" id="search" placeholder="Search name or phone..." oninput="renderTable()" />
+      <select id="filter-event" onchange="renderTable()">
+        <option value="">All Events</option>
+        <option value="page_open">Page Open</option>
+        <option value="scroll_update">Scrolling</option>
+        <option value="page_close">Page Close</option>
+        <option value="rti_button_click">RTI Click</option>
+      </select>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>NAME</th>
+            <th>PHONE</th>
+            <th>LAST EVENT</th>
+            <th>TIME SPENT</th>
+            <th>SCROLL DEPTH</th>
+            <th>SCROLL COUNT</th>
+            <th>REFRESHES</th>
+            <th>SHARED</th>
+            <th>SHARED VIEWS</th>
+            <th>TIMESTAMP</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let allEvents = [];
+    let refreshCounter = 30;
+
+    // Format seconds into "Xm Ys"
+    function formatTime(seconds) {
+      if (!seconds) return '0m 0s';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m}m ${s}s`;
+    }
+
+    // Format event type for UI display
+    function formatEventType(type) {
+      if (type === 'scroll_update') return { label: 'Scrolling', class: 'scrolling' };
+      if (type === 'page_open') return { label: 'Page Open', class: 'page_open' };
+      if (type === 'page_close') return { label: 'Page Close', class: 'page_open' }; // reuse blue style
+      if (type === 'rti_button_click') return { label: 'RTI Click', class: 'rti_click' };
+      return { label: type || 'Unknown', class: 'shared-no' };
+    }
+
+    // Format timestamp like "22/06/26, 9:21 pm"
+    function formatTimestamp(ts) {
+      if (!ts) return '-';
+      const d = new Date(ts);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = String(d.getFullYear()).slice(-2);
+      
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12;
+      hours = hours ? hours : 12; 
+      
+      return `${day}/${month}/${year}, ${hours}:${minutes} ${ampm}`;
+    }
+
+    async function fetchEvents() {
+      try {
+        const res = await fetch('/api/events?limit=1000');
+        const data = await res.json();
+        allEvents = data.events || [];
+        updateStats();
+        renderTable();
+        refreshCounter = 30; // reset timer
+      } catch (err) {
+        console.error("Error fetching events:", err);
+      }
+    }
+
+    function renderTable() {
+      const searchQ = document.getElementById('search').value.toLowerCase();
+      const filterEvt = document.getElementById('filter-event').value;
+
+      const filtered = allEvents.filter(e => {
+        const matchSearch = (e.name && e.name.toLowerCase().includes(searchQ)) || 
+                            (e.phone && e.phone.toLowerCase().includes(searchQ));
+        const matchEvt = filterEvt ? e.event_type === filterEvt : true;
+        return matchSearch && matchEvt;
+      });
+
+      const tbody = document.getElementById('table-body');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:2rem;">No matching events found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(e => {
+        const evtFormat = formatEventType(e.event_type);
+        const sharedClass = e.shared ? 'shared-yes' : 'shared-no';
+        const sharedText = e.shared ? 'YES' : 'No';
+        
+        return `
+        <tr>
+          <td style="color:${e.name ? '#fff' : 'var(--text-muted)'}">${e.name || '—'}</td>
+          <td style="color:#fff">${e.phone || '—'}</td>
+          <td><span class="tag ${evtFormat.class}">${evtFormat.label}</span></td>
+          <td>${formatTime(e.time_spent_seconds)}</td>
+          <td>${e.scroll_depth_percent || 0}%</td>
+          <td>${e.scroll_count || 0}</td>
+          <td>${e.refresh_count || 0}</td>
+          <td><span class="tag ${sharedClass}">${sharedText}</span></td>
+          <td>0</td> <!-- Placeholder for shared views -->
+          <td style="color:var(--text-muted)">${formatTimestamp(e.timestamp || e.received_at)}</td>
+          <td>
+            ${e.id ? `<button class="btn-delete" onclick="deleteEvent('${e.id}')">Delete</button>` : ''}
+          </td>
+        </tr>
+      `}).join('');
+    }
+
+    function updateStats() {
+      if (!allEvents.length) return;
+      
+      const uniquePhones = new Set(allEvents.filter(e => e.phone).map(e => e.phone));
+      document.getElementById('stat-students').innerText = uniquePhones.size;
+
+      const shares = allEvents.filter(e => e.shared === true).length;
+      document.getElementById('stat-shares').innerText = shares;
+
+      const totalScroll = allEvents.reduce((acc, curr) => acc + (curr.scroll_depth_percent || 0), 0);
+      const avgScroll = Math.round(totalScroll / allEvents.length);
+      document.getElementById('stat-avg-scroll').innerText = avgScroll + '%';
+
+      const totalTime = allEvents.reduce((acc, curr) => acc + (curr.time_spent_seconds || 0), 0);
+      const avgTime = Math.round(totalTime / allEvents.length);
+      document.getElementById('stat-avg-time').innerText = formatTime(avgTime);
+    }
+
+    async function deleteEvent(id) {
+      if (!confirm('Are you sure you want to delete this record?')) return;
+      try {
+        const res = await fetch('/api/events/' + id, { method: 'DELETE' });
+        if (res.ok) {
+          fetchEvents();
+        } else {
+          alert('Failed to delete event');
+        }
+      } catch (err) {
+        console.error('Error deleting event:', err);
+      }
+    }
+
+    // Timer logic
+    setInterval(() => {
+      refreshCounter--;
+      if (refreshCounter <= 0) {
+        fetchEvents();
+      } else {
+        document.getElementById('refresh-timer').innerText = refreshCounter;
+      }
+    }, 1000);
+
+    // Initial load
+    fetchEvents();
+  </script>
+</body>
+</html>
